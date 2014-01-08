@@ -56,7 +56,7 @@ public class BulkSmsHTTPGateway extends HTTPGateway
 	public BulkSmsHTTPGateway(String id, String myUsername, String myPassword)
 	{
 		super(id);
-		setRegion(Regions.INTERNATIONAL);
+		configureProviderUrl(Regions.INTERNATIONAL, false);
 		this.username = myUsername;
 		this.password = myPassword;
 		this.SYNC_Commander = new Object();
@@ -66,8 +66,22 @@ public class BulkSmsHTTPGateway extends HTTPGateway
 	public BulkSmsHTTPGateway(String id, String myUsername, String myPassword, Regions region)
 	{
 		this(id, myUsername, myPassword);
-		setRegion(region);
+		configureProviderUrl(region, false);
 	}
+
+
+	/**
+	 * @param id Id of this gateway.
+	 * @param myUsername User name of an existing BulkSMS account.
+	 * @param myPassword Password of existing BulkSMS account.
+	 * @param region See {@link Regions} for a list with supported regions.
+	 * @param useDefaultHttpPort If <code>false</code> port 5567 is used. If <code>true</code> the default http port is used.
+	 */
+	public BulkSmsHTTPGateway(String id, String myUsername, String myPassword, Regions region, boolean useDefaultHttpPort)
+    {
+        this(id, myUsername, myPassword);
+        configureProviderUrl(region, useDefaultHttpPort);
+    }
 
 	@Override
 	public void startGateway() throws TimeoutException, GatewayException, IOException, InterruptedException
@@ -208,28 +222,33 @@ public class BulkSmsHTTPGateway extends HTTPGateway
 		return ok;
 	}
 
-	void setRegion(Regions r)
+	void configureProviderUrl(Regions r, boolean useDefaultHttpPort)
 	{
 		switch (r)
 		{
 			case INTERNATIONAL:
-				this.providerUrl = "http://bulksms.vsms.net:5567";
+				this.providerUrl = "http://bulksms.vsms.net";
 				break;
 			case UNITEDKINGDOM:
-				this.providerUrl = "http://www.bulksms.co.uk:5567";
+				this.providerUrl = "http://www.bulksms.co.uk";
 				break;
 			case SOUTHAFRICA:
-				this.providerUrl = "http://bulksms.2way.co.za:5567";
+				this.providerUrl = "http://bulksms.2way.co.za";
 				break;
 			case SPAIN:
-				this.providerUrl = "http://bulksms.com.es:5567";
+				this.providerUrl = "http://bulksms.com.es";
 				break;
 			case USA:
-				this.providerUrl = "http://usa.bulksms.com:5567";
+				this.providerUrl = "http://usa.bulksms.com";
 				break;
 			case GERMANY:
-				this.providerUrl = "http://bulksms.de:5567";
+				this.providerUrl = "http://bulksms.de";
 				break;
+		}
+
+		if (!useDefaultHttpPort)
+		{
+		    this.providerUrl += ":5567";
 		}
 	}
 }
