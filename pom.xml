@@ -62,8 +62,12 @@
                         <supportedProjectType>jar</supportedProjectType>
                     </supportedProjectTypes>
                     <instructions>
+                        <Bundle-ClassPath>.,classes,{maven-dependencies}</Bundle-ClassPath>
                         <Bundle-SymbolicName>org.smslib</Bundle-SymbolicName>
                         <Import-Package>
+                            !org.jsmpp.*,
+                            !org.smslib.*;
+                            javax.*;resolution:=optional
                             *
                         </Import-Package>
                         <Export-Package>
@@ -117,7 +121,9 @@
         <dependency>
             <groupId>org.jsmpp</groupId>
             <artifactId>jsmpp</artifactId>
-            <version>2.2.2</version>
+            <version>2.1.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/jsmpp-2.1.0.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>log4j</groupId>
