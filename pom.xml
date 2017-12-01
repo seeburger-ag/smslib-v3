@@ -15,7 +15,8 @@
     Franklin St, Fifth Floor, Boston, MA ~ 02110-1301 USA, or see the FSF site:
     http://www.fsf.org. -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <licenses>
@@ -43,6 +44,35 @@
         <finalName>${project.artifactId}</finalName>
         <plugins>
             <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>2.5.4</version>
+                <extensions>true</extensions>
+                <executions>
+                    <execution>
+                        <id>bundle-manifest</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>manifest</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <supportedProjectTypes>
+                        <supportedProjectType>jar</supportedProjectType>
+                    </supportedProjectTypes>
+                    <instructions>
+                        <Bundle-SymbolicName>org.smslib</Bundle-SymbolicName>
+                        <Import-Package>
+                            *
+                        </Import-Package>
+                        <Export-Package>
+                            org.smslib.*
+                        </Export-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <executions>
@@ -55,7 +85,7 @@
                         <configuration>
                             <archive>
                                 <addMavenDescriptor>false</addMavenDescriptor>
-                                <manifestFile>${project.basedir}/build/SMSLib.mf</manifestFile>
+                                <manifestFile>${project.build.directory}/classes/META-INF/MANIFEST.MF</manifestFile>
                             </archive>
                         </configuration>
                     </execution>
@@ -87,9 +117,7 @@
         <dependency>
             <groupId>org.jsmpp</groupId>
             <artifactId>jsmpp</artifactId>
-            <version>2.1.1</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/lib/jsmpp-2.1.0.jar</systemPath>
+            <version>2.2.2</version>
         </dependency>
         <dependency>
             <groupId>log4j</groupId>

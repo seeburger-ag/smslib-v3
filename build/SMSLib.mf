@@ -9,5 +9,5 @@ Bundle-Version: @version@
 Bundle-Name: SMSlib Bundle
 Bundle-ManifestVersion: 2
 Bundle-Description: Provides the SMSlib classes as an OSGibundle. Note that this bundle still requires the javax.commpackage to be present in the container. A compatible bundlecan be downloaded from http://www.knopflerfish.org/releases/current/docs/jars/comm-win32/comm-win32_all-2.0.1.html
-Import-Package: org.apache.commons.net;version="[2.0.0,3)",org.log4j;version="[1.2.15,2)",javax.comm;version="[2.0.0,3)";resolution:=optional,gnu.io;resolution:=optional"
+Import-Package: org.apache.commons.net;version="[2.0.0,3)",org.apache.log4j;version="[1.2.15,2)",javax.comm;version="[2.0.0,3)";resolution:=optional,gnu.io;resolution:=optional"
 Bundle-SymbolicName: org.smslib

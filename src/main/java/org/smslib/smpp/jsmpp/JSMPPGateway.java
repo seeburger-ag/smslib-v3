@@ -69,7 +69,7 @@ import org.smslib.smpp.BindAttributes;
 
 /**
  * A gateway that supports SMPP through JSMPP (http://code.google.com/p/jsmpp/).
- * 
+ *
  * @author Bassam Al-Sarori
  */
 public class JSMPPGateway extends AbstractSMPPGateway {
@@ -80,7 +80,7 @@ public class JSMPPGateway extends AbstractSMPPGateway {
 	private BindType bindType;
 	private TypeOfNumber bindTypeOfNumber;
 	private NumberingPlanIndicator bindNumberingPlanIndicator;
-	
+
 
 	/**
 	 * @param id
@@ -91,11 +91,11 @@ public class JSMPPGateway extends AbstractSMPPGateway {
 	public JSMPPGateway(String id, String host, int port,
 			BindAttributes bindAttributes) {
 		super(id, host, port, bindAttributes);
-		
-		
+
+
 		setAttributes(AGateway.GatewayAttributes.SEND | AGateway.GatewayAttributes.CUSTOMFROM | AGateway.GatewayAttributes.BIGMESSAGES | AGateway.GatewayAttributes.FLASHSMS | AGateway.GatewayAttributes.RECEIVE);
 		init();
-		
+
 	}
 
 	private void init(){
@@ -120,35 +120,35 @@ public class JSMPPGateway extends AbstractSMPPGateway {
 			Logger.getInstance().logError(illegalArgumentException.getMessage(), illegalArgumentException, getGatewayId());
 			throw illegalArgumentException;
 		}
-		
+
 		bindTypeOfNumber=TypeOfNumber.valueOf(bindAttributes.getBindAddress().getTypeOfNumber().value());
 		bindNumberingPlanIndicator=NumberingPlanIndicator.valueOf(bindAttributes.getBindAddress().getNumberingPlanIndicator().value());
-		
+
 		initSession();
 	}
 	private void initSession(){
 		session = new SMPPSession();
 		session.addSessionStateListener(stateListener);
 		session.setMessageReceiverListener(messageReceiver);
-		
+
 	}
 	@Override
 	public void startGateway() throws TimeoutException, GatewayException,
 			IOException, InterruptedException {
-		
+
 		if(!session.getSessionState().isBound()){
 			if(enquireLink>0){
 				session.setEnquireLinkTimer(enquireLink);
 			}
-			
+
 		session.connectAndBind(host, port, new BindParameter(bindType, bindAttributes.getSystemId(), bindAttributes.getPassword(), bindAttributes.getSystemType(), bindTypeOfNumber, bindNumberingPlanIndicator, null));
-		
-		  
+
+
 		}else{
 			Logger.getInstance().logWarn("SMPP session already bound.", null, getGatewayId());
 		//	throw new GatewayException("Session already bound");
 		}
-		
+
 	}
 
 	@Override
@@ -157,7 +157,7 @@ public class JSMPPGateway extends AbstractSMPPGateway {
 		if(session.getSessionState().isBound()){
 			session.removeSessionStateListener(stateListener);
 			session.unbindAndClose();
-			
+
 			//super.stopGateway();
 		}else{
 			Logger.getInstance().logWarn("SMPP session not bound.", null, getGatewayId());
@@ -170,12 +170,12 @@ public class JSMPPGateway extends AbstractSMPPGateway {
 		 public void onAcceptDeliverSm(DeliverSm deliverSm)
          throws ProcessRequestException {
      if (MessageType.SMSC_DEL_RECEIPT.containedIn(deliverSm.getEsmClass())) {
-        
+
          try {
              DeliveryReceipt delReceipt = deliverSm.getShortMessageAsDeliveryReceipt();
-       
+
              StatusReportMessage statusReportMessage=new StatusReportMessage(delReceipt.getId(),deliverSm.getDestAddress(), deliverSm.getSourceAddr(), delReceipt.getText(),  delReceipt.getSubmitDate(),  delReceipt.getDoneDate());
-             
+
              switch(delReceipt.getFinalStatus()){
              case DELIVRD:
             	 statusReportMessage.setStatus(DeliveryStatuses.DELIVERED);
@@ -188,14 +188,14 @@ public class JSMPPGateway extends AbstractSMPPGateway {
              default:
             	 statusReportMessage.setStatus(DeliveryStatuses.UNKNOWN);
              }
-             
+
              statusReportMessage.setGatewayId(getGatewayId());
              Service.getInstance().getNotifyQueueManager().getNotifyQueue().add(new InboundMessageNotification(getMyself(), MessageTypes.STATUSREPORT, statusReportMessage));
          } catch (InvalidDeliveryReceiptException e) {
         	 Logger.getInstance().logError("Failed getting delivery receipt.", e, getGatewayId());
-            
+
          }
-     } else {        
+     } else {
          InboundMessage msg = new InboundMessage(new java.util.Date(), deliverSm.getSourceAddr(), new String(deliverSm.getShortMessage()), 0, null);
  		msg.setGatewayId(JSMPPGateway.this.getGatewayId());
  		if(Alphabet.ALPHA_DEFAULT.value()==deliverSm.getDataCoding()){
@@ -211,13 +211,13 @@ public class JSMPPGateway extends AbstractSMPPGateway {
  		Service.getInstance().getNotifyQueueManager().getNotifyQueue().add(new InboundMessageNotification(getMyself(), MessageTypes.INBOUND, msg));
      }
  }
- 
+
  public DataSmResult onAcceptDataSm(DataSm dataSm, Session source)
          throws ProcessRequestException {
 	// ignored
      return null;
  }
- 
+
  public void onAcceptAlertNotification(
          AlertNotification alertNotification) {
 	 // ignored
@@ -226,14 +226,14 @@ public class JSMPPGateway extends AbstractSMPPGateway {
 
 	class JSMPPSessionStateListener implements SessionStateListener {
         public void onStateChange(SessionState newState, SessionState oldState,
-                Object source) {
+                Session source) {
         	if(newState.isBound()){
         		if(!getStatus().equals(GatewayStatuses.STARTED)){
         			try {
 						JSMPPGateway.super.startGateway();
 					} catch (TimeoutException e) {
 						Logger.getInstance().logError("Failed starting Gateway.", e, getGatewayId());
-						
+
 					} catch (GatewayException e) {
 						Logger.getInstance().logError("Failed starting Gateway.", e, getGatewayId());
 					} catch (IOException e) {
@@ -244,9 +244,9 @@ public class JSMPPGateway extends AbstractSMPPGateway {
         		}
         	}else if(newState.equals(SessionState.CLOSED)){
         		if(getStatus().equals(GatewayStatuses.STARTED)){
-        	
+
 					JSMPPGateway.super.setStatus(GatewayStatuses.RESTART);
-				
+
 					initSession();
         		}
         	}
@@ -257,9 +257,9 @@ public class JSMPPGateway extends AbstractSMPPGateway {
 	@Override
 	public boolean sendMessage(OutboundMessage msg) throws TimeoutException,
 			GatewayException, IOException, InterruptedException {
-		
+
 		Alphabet encoding=Alphabet.ALPHA_DEFAULT;
-		
+
 		switch (msg.getEncoding()){
 		case ENC8BIT:
 			encoding=Alphabet.ALPHA_8_BIT;
@@ -268,33 +268,32 @@ public class JSMPPGateway extends AbstractSMPPGateway {
 			encoding=Alphabet.ALPHA_UCS2;
 			break;
 		case ENCCUSTOM:
-			encoding=Alphabet.ALPHA_RESERVED;
+			encoding=Alphabet.ALPHA_RESERVED_11;
 			break;
 		}
 		GeneralDataCoding dataCoding;
-		
+
 		switch(msg.getDCSMessageClass()){
 		case MSGCLASS_FLASH:
-			dataCoding=new GeneralDataCoding(false, true, MessageClass.CLASS0, encoding);
+			dataCoding=new GeneralDataCoding(encoding, MessageClass.CLASS0, false);
 			break;
 		case MSGCLASS_ME:
-			dataCoding=new GeneralDataCoding(false, true, MessageClass.CLASS1, encoding);
+			dataCoding=new GeneralDataCoding(encoding, MessageClass.CLASS1, false);
 			break;
 		case MSGCLASS_SIM:
-			dataCoding=new GeneralDataCoding(false, true, MessageClass.CLASS2, encoding);
+			dataCoding=new GeneralDataCoding(encoding, MessageClass.CLASS2, false);
 			break;
 		case MSGCLASS_TE:
-			dataCoding=new GeneralDataCoding(false, true, MessageClass.CLASS3, encoding);
+			dataCoding=new GeneralDataCoding(encoding, MessageClass.CLASS3, false);
 			break;
 		default:
-			dataCoding=new GeneralDataCoding();
-			dataCoding.setAlphabet(encoding);
+			dataCoding=new GeneralDataCoding(encoding);
 		}
 		try {
 			final RegisteredDelivery registeredDelivery = new RegisteredDelivery();
 	        registeredDelivery.setSMSCDeliveryReceipt((msg.getStatusReport())?SMSCDeliveryReceipt.SUCCESS_FAILURE:SMSCDeliveryReceipt.DEFAULT);
-	        
-			
+
+
 			String msgId=session.submitShortMessage(bindAttributes.getSystemType(),
 					TypeOfNumber.valueOf(sourceAddress.getTypeOfNumber().value()),
 					NumberingPlanIndicator.valueOf(sourceAddress.getNumberingPlanIndicator().value()),
@@ -333,10 +332,10 @@ public class JSMPPGateway extends AbstractSMPPGateway {
 			Logger.getInstance().logError("Message could not be sent.", e, getGatewayId());
 			throw new IOException("NegativeResponseException: ", e);
 		}
-		
+
 		return true;
 	}
-	
+
 	private String formatTimeFromHours(int timeInHours){
 		if(timeInHours<0){
 			return null;
@@ -345,17 +344,17 @@ public class JSMPPGateway extends AbstractSMPPGateway {
 		cDate.clear();
 		cDate.set(Calendar.YEAR, 0);
 		cDate.add(Calendar.HOUR, timeInHours);
-		
+
 		int years=cDate.get(Calendar.YEAR)-cDate.getMinimum(Calendar.YEAR);
 		int months=cDate.get(Calendar.MONTH);
 		int days=cDate.get(Calendar.DAY_OF_MONTH)-1;
 		int hours=cDate.get(Calendar.HOUR_OF_DAY);
-		
+
 		String yearsString=(years<10)?"0"+years:years+"";
 		String monthsString=(months<10)?"0"+months:months+"";
 		String daysString=(days<10)?"0"+days:days+"";
 		String hoursString=(hours<10)?"0"+hours:hours+"";
-		
+
 		return yearsString+monthsString+daysString+hoursString+"0000000R";
 	}
 
@@ -366,6 +365,6 @@ public class JSMPPGateway extends AbstractSMPPGateway {
 			session.setEnquireLinkTimer(enquireLink);
 		}
 	}
-	
-	
+
+
 }
